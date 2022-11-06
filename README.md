@@ -1,5 +1,5 @@
 
-# pleappleappleap's Project Euler Solutions
+## pleappleappleap's Project Euler Solutions
 
 Hi!
 
