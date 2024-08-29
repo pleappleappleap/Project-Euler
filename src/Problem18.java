@@ -1,11 +1,4 @@
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-
-import org.ikickass.util.NavigableLinkedHashMap;
 
 public class Problem18
 {

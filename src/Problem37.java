@@ -12,25 +12,25 @@ public class Problem37
         return x / 10;
     }
 
-    private static long[] DIGITS = { 1l,
-                                     10l,
-                                     100l,
-                                     1000l,
-                                     10000l,
-                                     100000l,
-                                     1000000l,
-                                     10000000l,
-                                     100000000l,
-                                     1000000000l,
-                                     10000000000l,
-                                     100000000000l,
-                                     1000000000000l,
-                                     10000000000000l,
-                                     100000000000000l,
-                                     1000000000000000l,
-                                     10000000000000000l,
-                                     100000000000000000l,
-                                     1000000000000000000l };
+    public static final long[] DIGITS = { 1l,
+                                          10l,
+                                          100l,
+                                          1000l,
+                                          10000l,
+                                          100000l,
+                                          1000000l,
+                                          10000000l,
+                                          100000000l,
+                                          1000000000l,
+                                          10000000000l,
+                                          100000000000l,
+                                          1000000000000l,
+                                          10000000000000l,
+                                          100000000000000l,
+                                          1000000000000000l,
+                                          10000000000000000l,
+                                          100000000000000000l,
+                                          1000000000000000000l };
 
     public static boolean allTruncatedPrime(final long n)
     {
@@ -78,10 +78,15 @@ public class Problem37
 
     public static void main(final String[] args)
     {
-        System.out.println(Problem7.stream().filter(l -> l > 7l).filter(l -> allTruncatedPrime(l)).limit(11).map(l ->
-        {
-            System.err.println(l);
-            return l;
-        }).sum());
+        final long BEGIN = System.nanoTime();
+        System.out.println(Problem7.stream()
+                                   .filter(l -> l > 7l)
+                                   .filter(l -> Problem35.allGoodDigits(l))
+                                   .filter(l -> allTruncatedPrime(l))
+                                   .limit(11)
+                                   .peek(l -> System.err.println(l))
+                                   .sum());
+        final long END = System.nanoTime();
+        System.out.println("" + (END - BEGIN) / 1000000.0d + "ms");
     }
 }

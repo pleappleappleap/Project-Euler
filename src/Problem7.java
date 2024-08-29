@@ -1,95 +1,88 @@
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.BooleanSupplier;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 public class Problem7
 {
-    private static final List<Long>      PRIMES;
-    private static final Map<Long, Long> CAPS;
-
-    private static final long   BORDER     = 113l;
-    private static final double BORDER_CAP = 3.508044336d;
-    private static final double CAP_LOG    = Math.log(BORDER_CAP);
+    private static final List<Long> PRIMES;
+    private static final long       CAP = Math.round(Math.sqrt(Long.MAX_VALUE));
 
     static
     {
         PRIMES = new ArrayList<>();
-        CAPS   = new HashMap<>();
 
         PRIMES.add(2l);
         PRIMES.add(3l);
-        PRIMES.add(5l);
-        PRIMES.add(7l);
-        CAPS.put(BORDER, (long) (BORDER * CAP_LOG / Math.log(BORDER)));
+        sieve(20l);
     }
 
     public static void main(final String[] args)
     {
-        IntStream.range(0, 1000000000)
-                 .mapToLong(i -> sieve(i))
-                 .filter(l -> l > 1000000l)
-                 .boxed()
-                 .findFirst()
-                 .ifPresent(l -> System.out.println(l));
+        System.out.println(sieve(10001));
     }
+
+    private static long get(final int n)
+    {
+        return PRIMES.get(n);
+    }
+
+    public static long getFirst()
+    { return PRIMES.get(0); }
+
+    public static long getLast()
+    { return PRIMES.get(PRIMES.size() - 1); }
 
     public static long sieve(final int count)
     {
         if(count < 0) throw new IllegalArgumentException("There are no negative prime numbers.");
-
-        sieve(() -> PRIMES.size() <= count);
-
-        return PRIMES.get(count);
+        if(count == 0) return getFirst();
+        else if(count < PRIMES.size()) return get(count);
+        else
+        {
+            for(long testMe = getLast() + 2l;; testMe += 2l)
+            {
+                test(testMe);
+                if(count < PRIMES.size()) return get(count);
+            }
+        }
     }
 
     public static long sieve(final long limit)
     {
-        if(limit < 2) throw new IllegalArgumentException("There are no negative prime numbers.");
-
-        sieve(() -> PRIMES.get(PRIMES.size() - 1) <= limit);
-
-        for(int i = Math.min((int) findCount(limit), PRIMES.size() - 1) ; i >= 0 ; i--)
+        if(limit < 2l) throw new IllegalArgumentException("There are no negative prime numbers.");
+        for(long testMe = getLast() + 2l ; testMe <= limit ; testMe += 2l)
         {
-            final long current = PRIMES.get(i);
-            if(current <= limit) return current;
+            test(testMe);
         }
-
-        throw new AssertionError("We should never be able to reach here.");
-    }
-
-    private static void sieve(final BooleanSupplier condition)
-    {
-        for(long i = PRIMES.get(PRIMES.size() - 1) ; condition.getAsBoolean() ; i++)
+        for(int i = PRIMES.size() - 1 ; i >= 0 ; i--)
         {
-            boolean composite = false;
-            for(long j : PRIMES)
+            final long prime = get(i);
+            if(prime <= limit) return prime;
+        }
+        throw new IllegalStateException("We should never reach here.");
+    }
+    
+    private static boolean test(final long n)
+    {
+        boolean composite = false;
+        
+        for(final long prime : PRIMES)
+        {
+            if(prime * prime > n) break;
+            else if(n % prime == 0l)
             {
-                if(i % j == 0)
-                {
-                    composite = true;
-                    break;
-                }
-            }
-            if(!composite)
-            {
-                PRIMES.add(i);
+                composite = true;
+                break;
             }
         }
-    }
-
-    public static boolean isPrime(final long n)
-    {
-        if(!PRIMES.contains(n) && (digitSum(n) == 3 || digitSum(n) == 6 || digitSum(n) == 9)) return false;
-        else if(n < 2) return false;
-        else
+        
+        if(!composite)
         {
-            sieve(n);
-            return PRIMES.contains(n);
+            PRIMES.add(n);
         }
+        
+        return composite;
     }
 
     public static LongStream stream()
@@ -97,37 +90,93 @@ public class Problem7
         return IntStream.iterate(0, i -> i + 1).mapToLong(i -> Problem7.sieve(i));
     }
 
-    public static LongStream stream(final long count)
+    public static LongStream stream(final int count)
     {
-        return LongStream.rangeClosed(2, count).map(l -> sieve(l)).distinct();
+        sieve(count);
+        return IntStream.rangeClosed(0, count).mapToLong(l -> sieve(l));
     }
 
-    public static long findCount(final long limit)
+    public static LongStream stream(final long limit)
     {
-        if(CAPS.containsKey(limit))
-        {
-            return CAPS.get(limit);
-        } else if(limit <= 113l)
-        {
-            CAPS.put(limit, limit);
-            return limit;
-        } else
-        {
-            final long count = (long) (limit * CAP_LOG / Math.log(limit));
-            CAPS.put(limit, count);
-            return count;
-        }
+        sieve(limit);
+        return stream().takeWhile(l -> l <= limit);
     }
 
-    private static long digitSum(final long n)
+    private static long moduloPower(final long X, final long Y, final long p)
     {
-        if(n < 0) return digitSum(-n);
-        else
+        long res = 1;
+        long y   = Y;
+        long x   = X % p;
+
+        while(y > 0)
         {
-            final int subsum =
-                    Long.toString(n).chars().mapToObj(c -> (char) c).map(c -> c.toString()).mapToInt(s -> Integer.valueOf(s)).sum();
-            if(subsum < 10) return subsum;
-            else return digitSum(subsum);
+            if((y & 1) == 1) res = (res * x) % p;
+
+            y = y >> 1;
+            x = (x * x) % p;
         }
+
+        return res;
+    }
+
+    private static boolean millerTest(final long D, final long n, final long a)
+    {
+        long d = D;
+
+        long x = moduloPower(a, d, n);
+
+        if(x == 1 || x == n - 1) return true;
+
+        while(d != n - 1)
+        {
+            x  = (x * x) % n;
+            d *= 2;
+
+            if(x == 1) return false;
+            if(x == n - 1) return true;
+        }
+
+        return false;
+    }
+
+    public static boolean isPrime(final long n)
+    {
+        if(n <= 1l || n == 4l) return false;
+        if(n <= 5l) return true;
+
+        if(PRIMES.contains(n)) return true;
+
+        switch ((int) (n % 10l))
+        {
+            case 0:
+            case 2:
+            case 4:
+            case 5:
+            case 6:
+            case 8:
+                return false;
+        }
+
+        switch ((int) (n % 9l))
+        {
+            case 3:
+            case 6:
+            case 9:
+                return false;
+        }
+
+        long d = n - 1l;
+
+        while(d % 2l == 0) d /= 2l;
+
+        final long[] tests = { 2l, 3l, 5l, 7l, 11l, 13l, 17l };
+
+        for(long a : tests)
+        {
+            if(!millerTest(d, n, a)) return false;
+        }
+
+        PRIMES.add(n);
+        return true;
     }
 }

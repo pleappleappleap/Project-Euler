@@ -1,15 +1,48 @@
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
+import org.ikickass.util.Pair;
+
 public class Problem38
 {
+    private static Map<Pair<Integer, Integer>, Long> PANDIGITALS;
+
+    static
+    {
+        PANDIGITALS = new HashMap<>();
+        IntStream.rangeClosed(1, 9)
+                 .mapToObj(i -> new Pair<Integer, Integer>(1, i))
+                 .forEach(p -> PANDIGITALS.put(p, generatePandigital(p)));
+    }
+
     public static boolean isPandigital(final long x, final int a, final int b)
     {
         if(Problem37.numberOfDigits(x) != Math.abs(b - a) + 1) return false;
         else return Long.compare(generatePandigital(a, b), sortDigits(x)) == 0;
+    }
+
+    private static long generatePandigital(final Pair<Integer, Integer> pair)
+    {
+        if(PANDIGITALS.containsKey(pair))
+        {
+            return PANDIGITALS.get(pair);
+        }
+
+        final StringBuilder comparison = new StringBuilder();
+        for(int i = pair.X ; i <= pair.Y ; i++)
+        {
+            comparison.append(i);
+        }
+        final long answer = Long.valueOf(comparison.toString());
+        PANDIGITALS.put(pair, answer);
+        return answer;
     }
 
     private static long generatePandigital(int a, int b)
@@ -24,12 +57,8 @@ public class Problem38
             b = temp;
         }
 
-        final StringBuilder comparison = new StringBuilder();
-        for(int i = a ; i <= b ; i++)
-        {
-            comparison.append(i);
-        }
-        return Long.valueOf(comparison.toString());
+        Pair<Integer, Integer> pair = new Pair<>(a, b);
+        return generatePandigital(pair);
     }
 
     public static LongStream stream(final boolean includeZero)
@@ -76,22 +105,16 @@ public class Problem38
         if(reverse) output = new TreeSet<>(Comparator.<Long>naturalOrder().reversed());
         else output = new TreeSet<>();
 
-        if(includeZero)
-        {
-            output.addAll(permute(0l,
-                                  IntStream.rangeClosed(0, n).boxed().collect(TreeSet::new, TreeSet::add, TreeSet::addAll),
-                                  reverse));
-        } else output.addAll(permute(0l,
-                                     IntStream.rangeClosed(1, n).boxed().collect(TreeSet::new, TreeSet::add, TreeSet::addAll),
-                                     reverse));
+        output.addAll(permuteStep(0l,
+                                  IntStream.rangeClosed(includeZero ? 0 : 1, n)
+                                           .boxed()
+                                           .collect(TreeSet::new, TreeSet::add, TreeSet::addAll)));
         return output;
     }
 
-    private static NavigableSet<Long> permute(final long prefix, final NavigableSet<Integer> digits, final boolean reverse)
+    private static List<Long> permuteStep(final long prefix, final NavigableSet<Integer> digits)
     {
-        NavigableSet<Long> output = null;
-        if(reverse) output = new TreeSet<>(Comparator.<Long>naturalOrder().reversed());
-        else output = new TreeSet<>();
+        final List<Long> output = new ArrayList<>();
 
         if(digits.size() == 1)
         {
@@ -109,7 +132,7 @@ public class Problem38
             else
             {
                 final long newPrefix = prefix * 10 + current;
-                output.addAll(permute(newPrefix, digits, reverse));
+                output.addAll(permuteStep(newPrefix, digits));
             }
         }
 
@@ -128,40 +151,32 @@ public class Problem38
 
     }
 
-    private static long sequenceMultiply(final long x, final int n)
+    private static long sequenceMultiply(final long x, final long n)
     {
-        return Long.valueOf((IntStream.rangeClosed(1, n)
-                                      .mapToLong(i -> i * x)
-                                      .mapToObj(l -> Long.toString(l))
-                                      .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
-                                      .toString()));
+        return Long.valueOf((LongStream.rangeClosed(1, n)
+                                       .map(i -> i * x)
+                                       .mapToObj(l -> Long.toString(l))
+                                       .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append)
+                                       .toString()));
     }
 
     public static void main(final String[] args)
     {
-        // final long CAP = 1000000000l;
-        // long longest = 0l;
-        // for(long i = 1 ; i < 100000l ; i++)
-        // {
-        // for(int j = 1 ; true ; j++)
-        // {
-        // final long testMe = sequenceMultiply(i, j);
-        // if(testMe >= CAP) break;
-        // if(isPandigital(testMe, 1, 9))
-        // {
-        // if(testMe > longest) longest = testMe;
-        // System.err.printf("i = %4d, j = %1d, testMe = %9d, longest = %9d\n", i, j,
-        // testMe, longest);
-        // }
-        // }
-        // }
-        //
-        // System.out.println(longest);
+        final long CAP      = 1000000000l;
+        final long SQRT_CAP = 31623l;
 
-        final long START = System.nanoTime();
-        reverseStream().forEach(l -> System.out.println(l));
+        final long BEGIN = System.nanoTime();
+        System.out.println(LongStream.rangeClosed(1, SQRT_CAP)
+                                     .map(l -> LongStream.iterate(1l, x -> x + 1)
+                                                         .map(x -> sequenceMultiply(l, x))
+                                                         .takeWhile(n -> n < CAP)
+                                                         .filter(n -> isPandigital(n, 1, 9))
+                                                         .max()
+                                                         .orElse(-1l))
+                                     .max()
+                                     .getAsLong());
         final long END = System.nanoTime();
 
-        System.out.println((END - START) / 1000000l);
+        System.out.println("" + (END - BEGIN) / 1000000.0d + "ms");
     }
 }

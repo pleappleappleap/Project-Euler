@@ -1,78 +1,40 @@
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 public class Problem50
 {
-    private static final long CAP    = 1000000l;
-    private static final long DIGITS = Problem37.numberOfDigits(CAP - 1l);
+    private static final long       CAP    = 1000000l;
+    private static final List<Long> PRIMES = Problem7.stream(CAP).boxed().collect(Collectors.toList());
 
     public static void main(final String[] args)
     {
-        final List<Long>                  primes      =
-                Problem7.stream(Problem7.findCount(CAP)).boxed().collect(Collectors.toList());
-        final NavigableMap<Long, Integer> primeCounts = new TreeMap<>();
-        long                              max         = 0l;
-        int                               maxPrimes   = 0;
+        int  begin  = 0;
+        int  length = 0;
+        long prime  = 0l;
 
-        for(int i = 0 ; i < primes.size() ; i++)
+        final long BEGIN = System.nanoTime();
+        for(int i = 0 ; i < PRIMES.size() ; i++)
         {
-            long accumulator = 0;
-            for(int j = i ; j < primes.size() ; j++)
+            long sum = 0;
+            for(int j = i ; j < PRIMES.size() ; j++)
             {
-                accumulator += primes.get(j);
-
-                if(accumulator > CAP)
+                sum += PRIMES.get(j);
+                final int  newLength = j - i + 1;
+                if(sum > CAP) break;
+                else if(newLength <= length) continue;
+                else if(Problem7.isPrime(sum))
                 {
-                    for(int k = j ; k > i ; k--)
-                    {
-                        accumulator -= primes.get(k);
-                        try
-                        {
-                            if(Problem7.isPrime(accumulator))
-                            {
-                                if(k - i > maxPrimes)
-                                {
-                                    max       = accumulator;
-                                    maxPrimes = k - i;
-                                    break;
-                                }
-                            } else if(k - i < maxPrimes) break;
-                        } finally
-                        {
-                            primeCounts.put(accumulator, k - i);
-                            // System.err.printf("primeCount = %3d, isPrime(%" + DIGITS + "d) = %5s\n",
-                            // k - i,
-                            // accumulator,
-                            // Problem7.isPrime(accumulator));
-                        }
-                    }
-                    break;
+                    length = newLength;
+                    prime = sum;
+                    begin = i;
                 }
+
+                if(sum > CAP) break;
             }
         }
+        final long END = System.nanoTime();
 
-        final List<Map.Entry<Long, Integer>> entryList = new ArrayList<>(primeCounts.entrySet());
-        int                                  count     = 0;
-        for(int i = 1 ; i < entryList.size() ; i++)
-        {
-            final Map.Entry<Long, Integer> currentEntry  = entryList.get(i);
-            final Map.Entry<Long, Integer> previousEntry = entryList.get(i - 1);
-            if(currentEntry.getValue() == previousEntry.getValue()) count++;
-            else
-            {
-                System.out.println("previousKey = " + previousEntry.getKey() +
-                                   ", previous = " +
-                                   previousEntry.getValue() +
-                                   ", count = " +
-                                   count);
-                count = 0;
-            }
-        }
-
-        System.out.println("max = " + max + ", maxPrimes = " + maxPrimes);
+        System.out.println("begin = " + begin + ", length = " + length + ", prime = " + prime);
+        System.out.println("" + (END - BEGIN) / 1000000.0d + "ms");
     }
 }

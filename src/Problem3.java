@@ -10,7 +10,10 @@ public class Problem3
 
     public static void main(String[] args)
     {
+        final long BEGIN = System.nanoTime();
         System.out.println(maxPrimeFactor(LIMIT));
+        final long END = System.nanoTime();
+        System.out.println("" + (END - BEGIN) / 1000000.0d + "ms");
     }
 
     public static long maxPrimeFactor(final long limit)
@@ -19,13 +22,10 @@ public class Problem3
         final AtomicLong subtotal = new AtomicLong(limit);
 
         final long answer = Problem7.stream()
+                                    .takeWhile(p -> p <= subtotal.get())
                                     .peek(p -> MAX_PRIME_FACTORS.put(p, p))
-                                    .takeWhile(p -> p <= limit)
-                                    .filter(p -> limit % p == 0)
-                                    .peek(p ->
-                                    {
-                                        while((subtotal.get() % p == 0) && (subtotal.get() > p)) subtotal.set(subtotal.get() / p);
-                                    })
+                                    .filter(p -> subtotal.get() % p == 0)
+                                    .peek(p -> { while((subtotal.get() % p == 0l) && (subtotal.get() > p)) subtotal.set(subtotal.get() / p); })
                                     .dropWhile(p -> p != subtotal.get())
                                     .findFirst()
                                     .getAsLong();

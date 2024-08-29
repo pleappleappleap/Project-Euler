@@ -12,7 +12,7 @@ import java.util.NavigableSet;
 import java.util.Set;
 import java.util.SortedSet;
 
-public class NavigableLinkedHashSet<E> extends LinkedHashSet<E> implements NavigableSet<E>
+public class NavigableLinkedHashSet<E extends Comparable<? super E>> extends LinkedHashSet<E> implements NavigableSet<E>
 {
     private NavigableLinkedHashSet<E>            PARENT;
     private final Set<NavigableLinkedHashSet<E>> CHILDREN;
@@ -139,7 +139,7 @@ public class NavigableLinkedHashSet<E> extends LinkedHashSet<E> implements Navig
     @Override
     public Comparator<? super E> comparator()
     {
-        return new LinkedHashComparator<>(this);
+        return new LinkedHashComparator<E>(this);
     }
 
     @Override

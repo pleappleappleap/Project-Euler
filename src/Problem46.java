@@ -4,18 +4,21 @@ public class Problem46
 {
     public static void main(final String[] args)
     {
-        System.out.println(LongStream.iterate(3l, l -> l + 2).filter(l -> !Problem7.isPrime(l)).filter(l ->
-        {
-            return !Problem7.stream()
-                            .takeWhile(p -> p <= l)
-                            .filter(p -> LongStream.rangeClosed(1l, l)
-                                                   .map(n -> n * n)
-                                                   .map(n -> 2 * n)
-                                                   .filter(n -> p + n == l)
-                                                   .findFirst()
-                                                   .isPresent())
-                            .findFirst()
-                            .isPresent();
-        }).findFirst().getAsLong());
+        final long BEGIN = System.nanoTime();
+        System.out.println(LongStream.iterate(3l, l -> l + 2l)
+                                     .filter(l -> !Problem7.isPrime(l))
+                                     .filter(l -> Problem7.stream(l - 1l)
+                                                          .map(p -> l - p)
+                                                          .filter(n -> LongStream.rangeClosed(1l, n)
+                                                                                 .map(x -> 2 * x * x)
+                                                                                 .filter(x -> x == n)
+                                                                                 .findAny()
+                                                                                 .isPresent())
+                                                          .findAny()
+                                                          .isEmpty())
+                                     .findFirst()
+                                     .getAsLong());
+        final long END = System.nanoTime();
+        System.out.println("" + (END - BEGIN) / 1000000.0d + "ms");
     }
 }

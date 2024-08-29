@@ -1,10 +1,12 @@
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
+
+import org.ikickass.util.Pair;
 
 public class Problem51
 {
@@ -28,11 +30,15 @@ public class Problem51
 
     private static Stream<String> permute(final String l, final int remaining)
     {
-        if(remaining == 1 && l.length() == 1) return Stream.of(REPLACE_ME);
-        else if(remaining < 1 | remaining > l.length()) return Stream.of();
-        else if(remaining == l.length()) return Stream.of(l.replaceAll(".", REPLACE_ME));
-
         final List<String> returnme = new ArrayList<>();
+        
+        if(remaining < 1 || remaining > l.length()) return Stream.of();
+        else if(remaining == l.length())
+        {
+            if(remaining == 1) returnme.add(REPLACE_ME);
+            else returnme.add(l.replaceAll(".", REPLACE_ME));
+            return returnme.stream();
+        }
 
         for(int i = 0 ; i < l.length() - remaining + 1 ; i++)
         {
@@ -47,30 +53,43 @@ public class Problem51
         return returnme.stream();
     }
 
+    private static boolean hasThreeRepeatedDigits(final long number)
+    {
+        int[] foundDigits = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+        long current = number;
+
+        while(current > 0)
+        {
+            final int currentDigit = (int) (current % 10l);
+            if(foundDigits[currentDigit] == 2) return true;
+            foundDigits[currentDigit]++;
+            current /= 10;
+        }
+
+        return false;
+    }
+
     public static void main(final String[] args)
     {
         final AtomicInteger count = new AtomicInteger(0);
-        Problem7.stream()
-                .mapToObj(l -> IntStream.range(1, Problem37.numberOfDigits(l))
-                                        .mapToObj(i -> permute(Long.toString(l), i))
-                                        .flatMap(ls -> ls)
-                                        .filter(s -> s.charAt(0) != '0')
-                                        .map(s -> substitute(s).filter(n -> Problem7.isPrime(n)).boxed().toList())
-                                        .filter(ll ->
-                                        {
-                                            if(ll.size() > count.get())
-                                            {
-                                                count.set(ll.size());
-                                                return true;
-                                            } else return false;
-                                        }))
-                .map(lls -> lls.toList())
-                .filter(lll -> lll.size() > 0)
-                .map(lll -> lll.stream()
-                               .map(ll -> new AbstractMap.SimpleEntry<Long,
-                                                                      Integer>(ll.stream().mapToLong(l -> l).min().getAsLong(),
-                                                                               ll.size())))
-                .flatMap(es -> es)
-                .forEach(e -> System.out.printf("%3d : %-8d\n", e.getValue(), e.getKey()));
+
+        final long BEGIN = System.nanoTime();
+        System.out.println(Problem7.stream()
+                                   .filter(p -> hasThreeRepeatedDigits(p))
+                                   .mapToObj(l -> IntStream.range(1, Problem37.numberOfDigits(l))
+                                                           .mapToObj(i -> permute(Long.toString(l), i))
+                                                           .flatMap(ls -> ls))
+                                   .flatMap(s -> s)
+                                   .map(s -> substitute(s).filter(n -> Problem7.isPrime(n))
+                                                          .boxed()
+                                                          .collect(Collectors.summarizingLong(n -> n)))
+                                   .map(summary -> new Pair<Long, Long>(summary.getMin(), summary.getCount()))
+                                   .filter(pair -> pair.Y == 8l)
+                                   .findAny()
+                                   .get());
+        final long END = System.nanoTime();
+
+        System.out.println("" + (END - BEGIN) / 1000000.0d + "ms");
     }
 }

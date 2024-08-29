@@ -14,7 +14,8 @@ public class Problem28
     public static void main(final String[] args)
     {
         final long STARTTIME = System.nanoTime();
-        generateDiagonalNumbers().limit(LIMIT).forEach(l -> System.out.println(l));
+        generateDiagonalNumbers().limit(100).forEach(l -> System.out.println(l));
+        System.out.println(generateDiagonalNumbers().limit(LIMIT).sum());
         final long ENDTIME = System.nanoTime();
         
         System.out.println("" + ((ENDTIME - STARTTIME) / 1000000) + " ms");

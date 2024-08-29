@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 
 public class Problem2
 {
-    private static class Matrix<T extends Number>
+    public static class Matrix<T extends Number>
     {
         private final T[][] DATA;
 
@@ -262,7 +262,7 @@ public class Problem2
         return PHI.pow(n + 1, MY_CONTEXT).subtract(PSI.pow(n + 1, MY_CONTEXT)).divide(SQRT_5, MY_CONTEXT).toBigInteger();
     }
 
-    private static class FibonacciResult
+    public static class FibonacciResult
     {
         final String[]     names;
         final BigInteger[] results;
@@ -312,7 +312,7 @@ public class Problem2
         }
     }
 
-    private static FibonacciResult timeFibonacci(final int limit)
+    public static FibonacciResult timeFibonacci(final int limit)
     {
         final String[]     NAMES   =
                 { "START", "Iteration", "Formula", "Recursion", "Matrix Exponentiation", "Recursive Formula", "Naive Recursion" };

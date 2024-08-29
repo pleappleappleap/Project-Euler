@@ -1,5 +1,5 @@
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -38,7 +38,7 @@ public class Problem24
         return permute(newDigits);
     }
 
-    public static Set<String> permute(final List<Character> digits)
+    public static Set<String> permute(final Collection<Character> digits)
     {
         if(digits == null) throw new NullPointerException("Can't permute a null list.");
         return permute(digits.toArray(new Character[0]));

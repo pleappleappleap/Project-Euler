@@ -10,9 +10,9 @@ public class Problem22
 {
     private static final Pattern DELIMITER = Pattern.compile("[,\"]");
     private static final Pattern WORD = Pattern.compile("[A-Z]*");
-    private static final String FILE_NAME = "C:\\Users\\sridhar\\p022_names.txt";
+    private static final String FILE_NAME = "C:\\Users\\sridhar\\eclipse-workspace\\ProjectEuler\\data\\p022_names.txt";
     
-    public static List<String> readFile(final String fileName)
+    private static List<String> readFile(final String fileName)
     {
         Scanner in = null;
         
